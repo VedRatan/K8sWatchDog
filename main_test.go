@@ -14,11 +14,11 @@ import (
 
 func TestAll(t *testing.T) {
 	// Run tests in sequence
-	t.Run("TestApplyHandler", TestApplyHandler)
+	t.Run("TestApplyHandler", testApplyHandler)
 	t.Cleanup(cleanupFunction)
 }
 
-func TestApplyHandler(t *testing.T) {
+func testApplyHandler(t *testing.T) {
 	req, err := http.NewRequestWithContext(t.Context(), "POST", "/apply", strings.NewReader(`apiVersion: v1
 kind: Pod
 metadata:
