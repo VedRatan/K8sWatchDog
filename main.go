@@ -24,6 +24,7 @@ func startServer(router *mux.Router) {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/apply", handlers.ApplyHandler).Methods("POST")
