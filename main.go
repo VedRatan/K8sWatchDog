@@ -6,14 +6,13 @@ import (
 	"io"
 	"log"
 	"net/http"
-
 	"path/filepath"
+	"time"
 
 	"github.com/gorilla/mux"
-
-	"k8s.io/apimachinery/pkg/util/yaml"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -22,7 +21,7 @@ import (
 
 var clientset *kubernetes.Clientset
 
-func init() {
+func init() { //nolint:gochecknoinits
 	// Load incluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -40,8 +39,23 @@ func init() {
 	}
 }
 
-func ApplyHandler(w http.ResponseWriter, r *http.Request) {
+func startServer(router *mux.Router) {
+	server := &http.Server{
+		Addr:           ":8080",
+		Handler:        router,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
+	}
 
+	log.Printf("Server is starting at :8080")
+	// Start the server
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
+}
+
+func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	manifest, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -68,14 +82,17 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "Pod manifest applied successfully"}`))
+	_, err = w.Write([]byte(`{"message": "Pod manifest applied successfully"}`))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to write response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
-
 
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/apply", ApplyHandler).Methods("POST")
 
 	log.Println("Starting k8s-agent on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	startServer(r)
 }
