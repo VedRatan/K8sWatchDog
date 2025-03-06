@@ -17,7 +17,7 @@ func startServer(router *mux.Router) {
 		port = "8080"
 	}
 	server := &http.Server{
-		Addr:           fmt.Sprintf(":%s",port),
+		Addr:           fmt.Sprintf(":%s", port),
 		Handler:        router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

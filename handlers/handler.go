@@ -75,7 +75,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 
 func ListPodsHandler(w http.ResponseWriter, r *http.Request) {
 	namespace := r.URL.Query().Get("namespace")
-	if namespace == "" {	
+	if namespace == "" {
 		namespace = "default"
 	}
 
