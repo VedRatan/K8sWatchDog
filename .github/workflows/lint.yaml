@@ -35,8 +35,10 @@ jobs:
         with:
           skip-cache: true
           working-directory: ./k8s-agent
+          args: --timeout 15m
       - name: Run golangci-lint for remediation-server
         uses: golangci/golangci-lint-action@v6
         with:
           skip-cache: true
           working-directory: ./remediation-server
+          args: --timeout 15m
