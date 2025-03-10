@@ -43,5 +43,4 @@ issues:
   - ".+\\.generated.go"
 
 output:
-  format: colored-line-number
   sort-results: true
