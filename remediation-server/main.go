@@ -34,7 +34,6 @@ func startServer(router *mux.Router) {
 }
 
 func main() {
-
 	flag.StringVar(&types.K8sAgentServiceURL, "k8s-agent-url", "", "The LoadBalancer IP or DNS of the k8s-agent-service (required)")
 	flag.Parse()
 

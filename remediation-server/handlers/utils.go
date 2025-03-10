@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -31,8 +32,14 @@ func extractPodDetails(remediationYAML string) (string, string, error) {
 
 func applyRemediation(remediationYAML string) error {
 	url := fmt.Sprintf("http://%s/apply", types.K8sAgentServiceURL)
-
-	resp, err := http.Post(url, "application/yaml", bytes.NewBufferString(remediationYAML))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBufferString(remediationYAML))
+	if err != nil {
+		return fmt.Errorf("Error creating POST request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/yaml")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send remediation YAML to k8s-agent: %v", err)
 	}
@@ -51,8 +58,11 @@ func verifyPodStatus(namespace, podName string) error {
 	for i := 0; i < 10; i++ { // Retry 10 times with a delay
 		time.Sleep(5 * time.Second) // Wait for 5 seconds before checking the status
 
-		// Send a GET request to the pod status endpoint
-		resp, err := http.Get(statusURL)
+		req, err := http.NewRequestWithContext(context.Background(), "GET", statusURL, nil)
+		if err != nil {
+			return fmt.Errorf("Error creating GET request: %v", err)
+		}
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to check pod status: %v", err)
 		}
@@ -62,7 +72,6 @@ func verifyPodStatus(namespace, podName string) error {
 			return fmt.Errorf("k8s-agent returned non-OK status: %s", resp.Status)
 		}
 
-		// Parse the response
 		var status map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
 			return fmt.Errorf("failed to decode pod status: %v", err)
@@ -70,7 +79,7 @@ func verifyPodStatus(namespace, podName string) error {
 
 		// Check if the pod is in the Ready state
 		if isPodReady(status) {
-			return nil // Pod is in Ready state
+			return nil
 		}
 	}
 
@@ -78,7 +87,6 @@ func verifyPodStatus(namespace, podName string) error {
 }
 
 func isPodReady(status map[string]interface{}) bool {
-	// Check if the pod phase is "Running"
 	if phase, ok := status["phase"].(string); !ok || phase != "Running" {
 		return false
 	}

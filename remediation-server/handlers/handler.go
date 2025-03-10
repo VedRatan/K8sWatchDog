@@ -29,7 +29,6 @@ func ForwardRemediation(remediationYAML string) error {
 	return nil
 }
 
-
 func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -51,5 +50,9 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Remediation applied successfully and pod is in Ready state"))
+	_, err = w.Write([]byte("Remediation applied successfully and pod is in Ready state"))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to write response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
