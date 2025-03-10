@@ -38,10 +38,9 @@ linters:
     - wastedassign
     - whitespace
 
-run:
-  timeout: 15m
-  issues.exclude-files:
-    - ".+\\.generated.go"
-  output:
-    format: colored-line-number
-    sort-results: true
+issues:
+  exclude-files:
+  - ".+\\.generated.go"
+
+output:
+  sort-results: true

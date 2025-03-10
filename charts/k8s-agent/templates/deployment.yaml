@@ -26,7 +26,7 @@ spec:
           image: "{{ .Values.image.imageRegistry }}/{{ .Values.image.imageRepository }}/k8s-agent:{{ default "latest" .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: PORT
+            - name: AGENT_PORT
               value: {{ .Values.service.targetPort | quote }}
           ports:
             - name: http
