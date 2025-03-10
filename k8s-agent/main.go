@@ -12,7 +12,7 @@ import (
 )
 
 func startServer(router *mux.Router) {
-	port := os.Getenv("PORT")
+	port := os.Getenv("AGENT_PORT")
 	if port == "" {
 		port = "8080"
 	}
@@ -24,7 +24,7 @@ func startServer(router *mux.Router) {
 		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
 	}
 
-	log.Printf("Server is starting at :8080")
+	log.Printf("Server is starting at :%s", port)
 	// Start the server
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
@@ -37,6 +37,5 @@ func main() {
 	r.HandleFunc("/pods", handlers.ListPodsHandler).Methods("GET")
 	r.HandleFunc("/pods/{namespace}/{podName}/logs", handlers.StreamLogsHandler).Methods("GET")
 	r.HandleFunc("/pods/{namespace}/{podName}/status", handlers.PodStatusHandler).Methods("GET")
-	log.Println("Starting k8s-agent on :8080")
 	startServer(r)
 }

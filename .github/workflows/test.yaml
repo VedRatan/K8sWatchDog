@@ -45,4 +45,5 @@ jobs:
       
       - name: Test
         run: |
+          cd k8s-agent
           make test
