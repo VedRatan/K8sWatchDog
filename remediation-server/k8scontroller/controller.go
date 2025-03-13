@@ -34,6 +34,7 @@ var (
 		Version:  "v1alpha1",
 		Resource: "results",
 	}
+	extraprompt  = "Generate a remediated Kubernetes Pod YAML manifest for above faulty Pod. Generate a valid pod YAML with no extra fields. Ensure the YAML is valid, properly formatted, and does not include any unnecessary fields, comments, or text explanations."
 )
 
 type controller struct {
@@ -204,7 +205,7 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 	}
 
 	// Construct the prompt for the AI agent
-	aiPrompt := fmt.Sprintf("%s\n\nPod YAML:\n%s\n\n provide remediated pod yaml, keep only those fields that will be required, and no other text messages", prompt, podYAML.String())
+	aiPrompt := fmt.Sprintf("%s\n\nPod YAML:\n%s\n\n%s", prompt, podYAML.String(), extraprompt)
 
 	// Call the AI client to generate content
 	remediatedYAML, err := c.aiClient.GenerateContent(ctx, aiPrompt)
