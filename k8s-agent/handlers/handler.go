@@ -67,7 +67,6 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	err = clientset.CoreV1().Pods(namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		http.Error(w, fmt.Sprintf("Failed to delete pod: %v", err), http.StatusInternalServerError)
-		return
 	}
 
 	watcher, err := clientset.CoreV1().Pods(namespace).Watch(context.TODO(), v1.ListOptions{

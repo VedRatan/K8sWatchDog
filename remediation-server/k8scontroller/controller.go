@@ -34,7 +34,7 @@ var (
 		Version:  "v1alpha1",
 		Resource: "results",
 	}
-	extraprompt  = "Generate a remediated Kubernetes Pod YAML manifest for above faulty Pod. Generate a valid pod YAML with no extra fields. Ensure the YAML is valid, properly formatted, and does not include any unnecessary fields, comments, or text explanations."
+	extraprompt = "Generate a remediated Kubernetes Pod YAML manifest for above faulty Pod. Generate a valid pod YAML with no extra fields. Ensure the YAML is valid, properly formatted, and does not include any unnecessary fields, comments, or text explanations."
 )
 
 type controller struct {
