@@ -46,6 +46,7 @@ func init() { //nolint:gochecknoinits
 }
 
 func ApplyHandler(w http.ResponseWriter, r *http.Request) {
+	checkForPodDelete := false
 	manifest, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -66,28 +67,31 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	name := podManifest.Name
 	err = clientset.CoreV1().Pods(namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
-		http.Error(w, fmt.Sprintf("Failed to delete pod: %v", err), http.StatusInternalServerError)
+		checkForPodDelete = true
+		log.Printf("Failed to delete pod: %v\n", err)
 	}
 
-	watcher, err := clientset.CoreV1().Pods(namespace).Watch(context.TODO(), v1.ListOptions{
-		FieldSelector: fmt.Sprintf("metadata.name=%s", name),
-	})
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create watcher %v", err), http.StatusInternalServerError)
-	}
-	defer watcher.Stop()
+	if checkForPodDelete {
+		watcher, err := clientset.CoreV1().Pods(namespace).Watch(context.TODO(), v1.ListOptions{
+			FieldSelector: fmt.Sprintf("metadata.name=%s", name),
+		})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to create watcher %v", err), http.StatusInternalServerError)
+		}
+		defer watcher.Stop()
 
-Loop:
-	for event := range watcher.ResultChan() {
-		switch event.Type {
-		case watch.Deleted:
-			log.Println("pod has been deleted", name)
-			watcher.Stop() // graceful shutdown
-			break Loop
-		case watch.Error:
-			log.Println("rror watching pod:", name)
-			http.Error(w, fmt.Sprintf("error watching pod: %v", event.Object), http.StatusInternalServerError)
-			return
+	Loop:
+		for event := range watcher.ResultChan() {
+			switch event.Type {
+			case watch.Deleted:
+				log.Println("pod has been deleted", name)
+				watcher.Stop() // graceful shutdown
+				break Loop
+			case watch.Error:
+				log.Println("rror watching pod:", name)
+				http.Error(w, fmt.Sprintf("error watching pod: %v", event.Object), http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 
