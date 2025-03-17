@@ -30,25 +30,25 @@ var (
 	k8sClient client.Client
 )
 
-func startServer(router *mux.Router) {
-	port := os.Getenv("SERVER_PORT")
-	if port == "" {
-		port = "7070" // default port
-	}
-	server := &http.Server{
-		Addr:           fmt.Sprintf(":%s", port),
-		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
-	}
+// func startServer(router *mux.Router) {
+// 	port := os.Getenv("SERVER_PORT")
+// 	if port == "" {
+// 		port = "7070" // default port
+// 	}
+// 	server := &http.Server{
+// 		Addr:           fmt.Sprintf(":%s", port),
+// 		Handler:        router,
+// 		ReadTimeout:    10 * time.Second,
+// 		WriteTimeout:   10 * time.Second,
+// 		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
+// 	}
 
-	log.Printf("Remediation server is starting at :%s", port)
-	// Start the server
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed: %v", err)
-	}
-}
+// 	log.Printf("Remediation server is starting at :%s", port)
+// 	// Start the server
+// 	if err := server.ListenAndServe(); err != nil {
+// 		log.Fatalf("Server failed: %v", err)
+// 	}
+// }
 
 func main() {
 	var runAs string
