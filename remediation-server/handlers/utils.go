@@ -33,7 +33,12 @@ func extractPodDetails(remediationYAML string) (string, string, error) {
 }
 
 func applyRemediation(remediationYAML string) error {
-	url := fmt.Sprintf("http://%s/apply", types.K8sAgentServiceURL)
+	var url string
+	if types.Insecure {
+		url = fmt.Sprintf("http://%s/apply", types.K8sAgentServiceURL)
+	} else {
+		url = fmt.Sprintf("https://%s/apply", types.K8sAgentServiceURL)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBufferString(remediationYAML))

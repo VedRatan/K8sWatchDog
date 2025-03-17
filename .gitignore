@@ -3,3 +3,5 @@
 /remediation-server/remediation-server
 result.yaml
 ollama/
+k8sgpt.yaml
+faulty-pod.yaml

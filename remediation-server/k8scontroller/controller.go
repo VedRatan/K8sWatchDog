@@ -34,7 +34,7 @@ var (
 		Version:  "v1alpha1",
 		Resource: "results",
 	}
-	extraprompt = "Generate a remediated Kubernetes Pod YAML manifest for above faulty Pod. Generate a valid pod YAML with no extra fields. Ensure the YAML is valid, properly formatted, and does not include any unnecessary fields, comments, or text explanations."
+	extraprompt = "Generate a remediated Kubernetes Pod YAML manifest for above faulty Pod. Generate a valid pod YAML with no extra fields, don't change the metadata of the pod. Ensure the YAML is valid, properly formatted, and does not include any unnecessary fields, comments, or text explanations."
 )
 
 type controller struct {
@@ -125,8 +125,6 @@ func (c *controller) worker(ctx context.Context) {
 }
 
 func (c *controller) processItem() bool {
-	fmt.Println("inside the process Item")
-	fmt.Println("length of queue:", c.queue.Len())
 	item, shutdown := c.queue.Get()
 	if shutdown {
 		return false
@@ -197,6 +195,7 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 		return fmt.Errorf("failed to get pod: %v", err)
 	}
 
+	log.Println("fetched the faulty pod:", nsName)
 	// Convert the Pod object to YAML
 	serializer := jsonApiMachinery.NewSerializerWithOptions(jsonApiMachinery.DefaultMetaFactory, nil, nil, jsonApiMachinery.SerializerOptions{Yaml: true})
 	var podYAML bytes.Buffer
@@ -213,12 +212,14 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 		return fmt.Errorf("failed to generate content from AI agent: %v", err)
 	}
 
-	// Forward the remediation
+	log.Println("generated remediated pod YAML, remediating faulty pod...", nsName)
 
+	// Forward the remediation
 	if err := handlers.ForwardRemediation(remediatedYAML); err != nil {
 		return fmt.Errorf("failed to forward remediation to k8s-agent: %v", err)
 	}
 
+	log.Println("remediated faulty pod.", nsName)
 	return nil
 }
 

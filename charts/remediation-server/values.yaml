@@ -6,7 +6,7 @@
 replicaCount: 1
 
 labels:
-  app: k8s-agent
+  app: remediation-server
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -18,6 +18,18 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
 
+# This is where you can put required/optional configuration for your application.
+config:
+  # the ai backend to provide remediation ex: gemini, openai, cohere etc. Currently supported - gemini (optional)
+  aiBackend: gemini
+  # the apiKey for the ai backend (required) (by default you need to provide the gemini api key if aiBackend field is left empty or set to gemini.)
+  aiApiKey: AIzaSyA98MRZffd3eEFbKy5F_o8-CexnC-Cy7yU
+  # the url of the k8sAgent service to apply the remediated YAML in k8s-cluster. (required)
+  k8sAgentUrl: "10.96.179.3:80" # ex: <ip>:<port> (omit the port field if k8s-agent service is listening on port 80)
+  # configure the remediation-service to use https (insecure: false) or http (insecure: true) to communicate to k8s-agent-service (optional)
+  insecure:
+
+
 securityContext: {}
   # capabilities:
   #   drop:
@@ -26,14 +38,6 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: LoadBalancer
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 80
-
-  targetPort: 8080
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
