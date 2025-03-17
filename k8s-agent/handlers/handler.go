@@ -88,7 +88,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 				watcher.Stop() // graceful shutdown
 				break Loop
 			case watch.Error:
-				log.Println("rror watching pod:", name)
+				log.Println("error watching pod:", name)
 				http.Error(w, fmt.Sprintf("error watching pod: %v", event.Object), http.StatusInternalServerError)
 				return
 			}
