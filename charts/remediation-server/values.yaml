@@ -25,7 +25,8 @@ config:
   # the apiKey for the ai backend (required) (by default you need to provide the gemini api key if aiBackend field is left empty or set to gemini.)
   aiApiKey:
   # the url of the k8sAgent service to apply the remediated YAML in k8s-cluster. (required)
-  k8sAgentUrl: # ex: <ip>:<port> (omit the port field if k8s-agent service is listening on port 80)
+  # ex: <ip>:<port> (omit the port field if k8s-agent service is listening on port 80)
+  k8sAgentUrl:
   # configure the remediation-service to use https (insecure: false) or http (insecure: true) to communicate to k8s-agent-service (optional)
   insecure:
 
