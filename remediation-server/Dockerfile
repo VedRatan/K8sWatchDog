@@ -18,4 +18,4 @@ WORKDIR /app
 
 COPY --from=builder /app/remediation-server .
 
-CMD ["./remediation-server"]
+ENTRYPOINT ["./remediation-server"]

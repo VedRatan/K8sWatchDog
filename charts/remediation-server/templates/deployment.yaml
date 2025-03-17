@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "charts.fullname" . }}
+  labels:
+    {{- include "charts.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "charts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "charts.labels" . | nindent 8 }}
+    spec:
+      {{- if and .Values.image.imageRegistry .Values.image.registryUserName .Values.image.registryPassword}}
+      imagePullSecrets:
+      - remediation-server-image-pull-secret
+      {{- end }}
+      serviceAccountName: remediation-server-sa
+      containers:
+        - args:
+            {{ if .Values.config.aiBackend }}
+            - -ai
+            - {{ .Values.config.aiBackend }}
+            {{ end }}
+            {{ if .Values.config.insecure }}
+            - -insecure
+            - {{ .Values.config.insecure }}
+            {{ end }}
+            - -k8s-agent-url
+            - {{ .Values.config.k8sAgentUrl }}
+            - -api-key
+            - $(API_KEY)
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-api-token
+                  key: apiKey
+          name: remediation-server
+          image: "{{ .Values.image.imageRegistry }}/{{ .Values.image.imageRepository }}/remediation-server:{{ default "latest" .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

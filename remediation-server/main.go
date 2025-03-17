@@ -5,18 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
-	"github.com/VedRatan/remediation-server/handlers"
 	"github.com/VedRatan/remediation-server/k8s"
 	"github.com/VedRatan/remediation-server/k8scontroller"
 	"github.com/VedRatan/remediation-server/types"
-	"github.com/gorilla/mux"
 	k8sgptv1alpha1 "github.com/k8sgpt-ai/k8sgpt-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,25 +27,25 @@ var (
 	k8sClient client.Client
 )
 
-func startServer(router *mux.Router) {
-	port := os.Getenv("SERVER_PORT")
-	if port == "" {
-		port = "7070" // default port
-	}
-	server := &http.Server{
-		Addr:           fmt.Sprintf(":%s", port),
-		Handler:        router,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
-	}
+// func startServer(router *mux.Router) {
+// 	port := os.Getenv("SERVER_PORT")
+// 	if port == "" {
+// 		port = "7070" // default port
+// 	}
+// 	server := &http.Server{
+// 		Addr:           fmt.Sprintf(":%s", port),
+// 		Handler:        router,
+// 		ReadTimeout:    10 * time.Second,
+// 		WriteTimeout:   10 * time.Second,
+// 		MaxHeaderBytes: 1 << 20, // Set max header size (e.g., 1 MB)
+// 	}
 
-	log.Printf("Remediation server is starting at :%s", port)
-	// Start the server
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed: %v", err)
-	}
-}
+// 	log.Printf("Remediation server is starting at :%s", port)
+// 	// Start the server
+// 	if err := server.ListenAndServe(); err != nil {
+// 		log.Fatalf("Server failed: %v", err)
+// 	}
+// }
 
 func main() {
 	var runAs string
@@ -57,6 +53,7 @@ func main() {
 	flag.StringVar(&types.K8sAgentServiceURL, "k8s-agent-url", "", "The LoadBalancer IP or DNS of the k8s-agent-service (required)")
 	flag.StringVar(&types.AiAgent, "ai", "gemini", "AI agent to use as a backend to provide remediations")
 	flag.StringVar(&types.AiAgentKey, "api-key", "", "AI agent api key")
+	flag.BoolVar(&types.Insecure, "insecure", true, "Use insecure (non-TLS) connection to k8s-agent-service.")
 	flag.Parse()
 	types.AiAgent = strings.ToLower(types.AiAgent) // make sure that the case is uniform
 
@@ -77,11 +74,12 @@ func main() {
 
 	switch runAs {
 	case "server":
-		r := mux.NewRouter()
+		// r := mux.NewRouter()
 		// Define the HTTP server
-		r.HandleFunc("/webhook", handlers.WebhookHandler)
+		// r.HandleFunc("/webhook", handlers.WebhookHandler)
 
-		startServer(r)
+		// startServer(r)
+		fmt.Println("server mode is still pending, as k8sgpt doesn't integrate directly to any third party service except slack and ")
 	case "k8s-controller":
 		utilruntime.Must(k8sgptv1alpha1.AddToScheme(scheme))
 		utilruntime.Must(corev1.AddToScheme(scheme))
