@@ -6,10 +6,12 @@ import (
 
 // NewLogger creates and returns a logger with the provided service name.
 func NewLogger(serviceName string) (*zap.Logger, error) {
+	config := zap.NewProductionConfig()
+	config.DisableStacktrace = true
 	var logger *zap.Logger
 	var err error
 
-	logger, err = zap.NewProduction()
+	logger, err = config.Build()
 	if err != nil {
 		return nil, err
 	}

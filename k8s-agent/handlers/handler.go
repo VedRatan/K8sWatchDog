@@ -54,6 +54,7 @@ func init() { //nolint:gochecknoinits
 	if err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
+	defer logger.Sync() //nolint:errcheck
 }
 
 func ApplyHandler(w http.ResponseWriter, r *http.Request) {
