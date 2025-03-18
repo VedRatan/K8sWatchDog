@@ -10,7 +10,6 @@ func NewLogger(serviceName string) (*zap.Logger, error) {
 	var err error
 
 	logger, err = zap.NewProduction()
-
 	if err != nil {
 		return nil, err
 	}

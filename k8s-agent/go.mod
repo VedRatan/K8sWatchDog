@@ -11,7 +11,7 @@ require (
 	k8s.io/client-go v0.32.2
 	github.com/VedRatan/k8swatchdog v0.0.0-20250317153151-31638c847f5d
 )
-replace github.com/VedRatan/k8swatchdog => ../../k8swatchdog
+replace github.com/VedRatan/k8swatchdog => ../
 
 require github.com/rogpeppe/go-internal v1.13.1 // indirect
 
