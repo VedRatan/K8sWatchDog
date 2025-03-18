@@ -18,8 +18,6 @@ on:
         - k8s_agent
         - remediation_server
         required: true
-
-
 jobs:
   build-and-push-k8s-agent:
     if: ${{ inputs.dest_env == 'k8s_agent' }}
@@ -44,7 +42,7 @@ jobs:
 
 
   build-and-push-remediation-server:
-    if: ${{ inputs.dest_env == 'k8s_agent' }}
+    if: ${{ inputs.dest_env == 'remediation_server' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
