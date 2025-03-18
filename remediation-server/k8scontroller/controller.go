@@ -114,7 +114,7 @@ func (c *controller) Start(ctx context.Context) {
 func (c *controller) Stop() {
 	defer c.logger.Info("queue stopped")
 	defer c.wg.Wait()
-	defer c.logger.Sync()
+	defer c.logger.Sync() //nolint:errcheck
 	// Unregister the event handlers
 	c.UnregisterEventHandlers()
 	c.logger.Info("queue stopping ....")
