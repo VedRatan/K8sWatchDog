@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"path/filepath"
 
+	customlogger "github.com/VedRatan/k8swatchdog/logger"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,10 +24,14 @@ import (
 )
 
 const (
-	ERROR_RESPONSE = "Failed to write response: %v"
+	ERROR_RESPONSE     = "Failed to write response: %v"
+	LOG_ERROR_RESPONSE = "failed to write response"
 )
 
-var clientset *kubernetes.Clientset
+var (
+	clientset *kubernetes.Clientset
+	logger    *zap.Logger
+)
 
 func init() { //nolint:gochecknoinits
 	// Load incluster config
@@ -43,6 +49,11 @@ func init() { //nolint:gochecknoinits
 	if err != nil {
 		log.Fatalf("Error creating clientset: %v", err)
 	}
+
+	logger, err = customlogger.NewLogger("k8s-agent")
+	if err != nil {
+		log.Fatalf("Error initializing logger: %v", err)
+	}
 }
 
 func ApplyHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +67,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	var podManifest corev1.Pod
 	err = yaml.Unmarshal(manifest, &podManifest)
 	if err != nil {
+		logger.Error("Error occurred", zap.Error(err))
 		http.Error(w, "Failed to decode YAML manifest into Pod", http.StatusBadRequest)
 		return
 	}
@@ -67,8 +79,9 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	name := podManifest.Name
 	err = clientset.CoreV1().Pods(namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
+		logger.Error("Failed to delete pod", zap.Error(err))
+	} else if err == nil {
 		checkForPodDelete = true
-		log.Printf("Failed to delete pod: %v\n", err)
 	}
 
 	if checkForPodDelete {
@@ -84,11 +97,11 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Deleted:
-				log.Println("pod has been deleted", name)
+				logger.Info("pod has been deleted", zap.String("name", name))
 				watcher.Stop() // graceful shutdown
 				break Loop
 			case watch.Error:
-				log.Println("error watching pod:", name)
+				logger.Error("error watching pod", zap.String("name", name))
 				http.Error(w, fmt.Sprintf("error watching pod: %v", event.Object), http.StatusInternalServerError)
 				return
 			}
@@ -97,15 +110,17 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = clientset.CoreV1().Pods(namespace).Create(context.Background(), &podManifest, v1.CreateOptions{})
 	if err != nil {
+		logger.Error("failed to apply manifest", zap.Error(err))
 		http.Error(w, fmt.Sprintf("Failed to apply manifest: %v", err), http.StatusInternalServerError)
 		return
 	}
-	log.Println("remediated pod has been created", name)
+	logger.Info("remediated pod has been created", zap.String("name", namespace+"/"+name))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(`{"message": "Pod manifest applied successfully"}`))
 	if err != nil {
+		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
@@ -119,14 +134,14 @@ func ListPodsHandler(w http.ResponseWriter, r *http.Request) {
 
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
-		log.Println("failed to list pods", err.Error())
+		logger.Error("failed to list pods", zap.Error(err))
 		http.Error(w, fmt.Sprintf("Failed to list pods: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(pods.Items)
 	if err != nil {
-		log.Println("failed to write response", err.Error())
+		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
@@ -139,7 +154,7 @@ func StreamLogsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logs, err := clientset.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{}).Stream(context.TODO())
 	if err != nil {
-		log.Println("failed to get logs", err.Error())
+		logger.Error("failed to get logs", zap.Error(err))
 		http.Error(w, fmt.Sprintf("Failed to stream logs: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -148,7 +163,7 @@ func StreamLogsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	_, err = io.Copy(w, logs)
 	if err != nil {
-		log.Println("failed to write response", err.Error())
+		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}

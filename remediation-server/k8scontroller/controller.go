@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	customlogger "github.com/VedRatan/k8swatchdog/logger"
 	"github.com/VedRatan/remediation-server/ai"
 	"github.com/VedRatan/remediation-server/handlers"
 	"github.com/VedRatan/remediation-server/k8s"
 	"github.com/VedRatan/remediation-server/types"
 	k8sgptv1alpha1 "github.com/k8sgpt-ai/k8sgpt-operator/api/v1alpha1"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -45,6 +45,7 @@ type controller struct {
 	aiClient          ai.AIClient
 	Informer          cache.SharedIndexInformer
 	eventRegistration cache.ResourceEventHandlerRegistration
+	logger            *zap.Logger
 }
 
 func K8sGptResultInformer() cache.SharedIndexInformer {
@@ -84,9 +85,17 @@ func NewController(client client.Client) *controller {
 	)
 	if err != nil {
 		fmt.Printf("error in registering event handler: %v", err)
+		os.Exit(1)
+	}
+
+	logger, err := customlogger.NewLogger("remediation-server")
+	if err != nil {
+		fmt.Println("Error initializing logger:", err)
+		os.Exit(1)
 	}
 
 	c.eventRegistration = eventRegistration
+	c.logger = logger
 
 	return c
 }
@@ -96,43 +105,43 @@ func (c *controller) Start(ctx context.Context) {
 		return
 	}
 	c.wg.StartWithContext(ctx, func(ctx context.Context) {
-		defer log.Println("worker stopped")
-		log.Println("worker starting ....")
+		defer c.logger.Info("worker stopped")
+		c.logger.Info("worker starting ....")
 		wait.UntilWithContext(ctx, c.worker, 1*time.Second)
 	})
 }
 
 func (c *controller) Stop() {
-	defer log.Println("queue stopped")
+	defer c.logger.Info("queue stopped")
 	defer c.wg.Wait()
 	// Unregister the event handlers
 	c.UnregisterEventHandlers()
-	log.Println("queue stopping ....")
+	c.logger.Info("queue stopping ....")
 	c.queue.ShutDown()
 }
 
 func (c *controller) UnregisterEventHandlers() {
 	if err := c.Informer.RemoveEventHandler(c.eventRegistration); err != nil {
-		log.Println("error removing event handlers:", err.Error())
+		c.logger.Error("error removing event handlers:", zap.Error(err))
 		return
 	}
-	fmt.Println("unregister event handlers")
+	c.logger.Info("unregister event handlers")
 }
 
 func (c *controller) worker(ctx context.Context) {
-	for c.processItem() {
+	for c.processItem(ctx) {
 	}
 }
 
-func (c *controller) processItem() bool {
+func (c *controller) processItem(ctx context.Context) bool {
 	item, shutdown := c.queue.Get()
 	if shutdown {
 		return false
 	}
 	defer c.queue.Forget(item)
-	err := c.reconcile(item)
+	err := c.reconcile(ctx, item)
 	if err != nil {
-		fmt.Printf("reconciliation failed err: %s, for resource %s\n", err.Error(), item)
+		c.logger.Info("reconciliation failed", zap.Error(err))
 		c.queue.Done(item)
 		c.queue.AddRateLimited(item)
 		return true
@@ -142,23 +151,20 @@ func (c *controller) processItem() bool {
 	return true
 }
 
-func (c *controller) reconcile(item any) error {
+func (c *controller) reconcile(ctx context.Context, item any) error {
 	key, err := cache.MetaNamespaceKeyFunc(item)
 	if err != nil {
-		fmt.Printf("error getting key from cache %s\n", err.Error())
+		c.logger.Error("error getting key from cache", zap.Error(err))
 	}
 
 	ns, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
 		return err
 	}
-	_, err = c.resLister.ByNamespace(ns).Get(name)
-	if apierrors.IsNotFound(err) {
-		return nil
-	}
 
 	err = c.createRemediationRequest(ns, name)
 	if err != nil {
+		c.logger.Error("error creating remediation request to k8s-agent", zap.Error(err), zap.String("name", name), zap.String("namespace", ns))
 		return err
 	}
 	return nil
@@ -171,36 +177,40 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 	// Fetch and process the object
 	obj, err := c.resLister.ByNamespace(ns).Get(name)
 	if err != nil {
-		return fmt.Errorf("error getting object: %v", err)
+		c.logger.Error("error getting result obj", zap.Error(err), zap.String("name", name), zap.String("namespace", ns))
+		return err
 	}
 
 	unstructureObj, ok := obj.(*unstructured.Unstructured)
 	if !ok {
-		log.Println("failed to convert runtime.Object to *unstructured.Unstructured")
+		c.logger.Error("failed to convert runtime.Object to *unstructured.Unstructured", zap.Error(err), zap.String("name", name), zap.String("namespace", ns))
 	}
 
 	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructureObj.Object, &result); err != nil {
-		return fmt.Errorf("failed to convert unstructured obj to *k8sgptv1alpha1.Result: %v", err)
+		c.logger.Error("failed to convert unstructured obj to *k8sgptv1alpha1.Result", zap.Error(err), zap.String("name", name), zap.String("namespace", ns))
+		return err
 	}
 
 	prompt := result.Spec.Details
 	nsName := result.Spec.Name
 	podNs, podName, err := cache.SplitMetaNamespaceKey(nsName)
 	if err != nil {
-		return fmt.Errorf("splitting key into namespace and name: %v", err)
+		c.logger.Error("error splitting key into namespace and name", zap.Error(err))
+		return err
 	}
 
 	var pod corev1.Pod
 	if err := c.clientset.Get(ctx, apitypes.NamespacedName{Namespace: podNs, Name: podName}, &pod); err != nil {
-		return fmt.Errorf("failed to get pod: %v", err)
+		c.logger.Error("failed to get pod", zap.Error(err))
+		return err
 	}
 
-	log.Println("fetched the faulty pod:", nsName)
+	c.logger.Info("fetched the faulty pod", zap.String("name", nsName))
 	// Convert the Pod object to YAML
 	serializer := jsonApiMachinery.NewSerializerWithOptions(jsonApiMachinery.DefaultMetaFactory, nil, nil, jsonApiMachinery.SerializerOptions{Yaml: true})
 	var podYAML bytes.Buffer
 	if err := serializer.Encode(&pod, &podYAML); err != nil {
-		log.Println("failed to encode pod to YAML:", err)
+		c.logger.Error("failed to encode pod to YAML", zap.Error(err))
 	}
 
 	// Construct the prompt for the AI agent
@@ -209,17 +219,19 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 	// Call the AI client to generate content
 	remediatedYAML, err := c.aiClient.GenerateContent(ctx, aiPrompt)
 	if err != nil {
-		return fmt.Errorf("failed to generate content from AI agent: %v", err)
+		c.logger.Error("failed to generate content from AI agent", zap.Error(err))
+		return err
 	}
 
-	log.Println("generated remediated pod YAML, remediating faulty pod...", nsName)
+	c.logger.Info("got the remediation, remediating faulty pod...", zap.String("pod", nsName))
 
 	// Forward the remediation
 	if err := handlers.ForwardRemediation(remediatedYAML); err != nil {
-		return fmt.Errorf("failed to forward remediation to k8s-agent: %v", err)
+		c.logger.Error("failed to forward remediation to k8s-agent", zap.Error(err))
+		return err
 	}
 
-	log.Println("remediated faulty pod.", nsName)
+	c.logger.Info("remediated faulty pod", zap.String("pod", nsName))
 	return nil
 }
 
@@ -228,5 +240,5 @@ func (c *controller) handleAdd(obj interface{}) {
 }
 
 func (c *controller) handleDel(obj interface{}) {
-	fmt.Println("delete was called")
+	c.logger.Info("delete was called")
 }

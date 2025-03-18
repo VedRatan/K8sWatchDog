@@ -5,11 +5,13 @@ go 1.24.0
 require (
 	github.com/gorilla/mux v1.8.1
 	github.com/stretchr/testify v1.10.0
+	go.uber.org/zap v1.27.0
 	k8s.io/api v0.32.2
 	k8s.io/apimachinery v0.32.2
 	k8s.io/client-go v0.32.2
-	k8s.io/kubectl v0.32.2
+	github.com/VedRatan/k8swatchdog v0.0.0-20250317153151-31638c847f5d
 )
+replace github.com/VedRatan/k8swatchdog => ../
 
 require github.com/rogpeppe/go-internal v1.13.1 // indirect
 
@@ -37,6 +39,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect

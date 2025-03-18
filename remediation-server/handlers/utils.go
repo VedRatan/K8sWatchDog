@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -90,7 +89,6 @@ func verifyPodStatus(namespace, podName string) error {
 
 		// Check if the pod is in the Ready state
 		if isPodReady(status) {
-			log.Println("Pod is ready", podName)
 			return nil
 		}
 	}
