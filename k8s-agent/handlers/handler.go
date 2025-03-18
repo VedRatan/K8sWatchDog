@@ -57,7 +57,7 @@ func init() { //nolint:gochecknoinits
 }
 
 func ApplyHandler(w http.ResponseWriter, r *http.Request) {
-	checkForPodDelete := true
+	checkForPodDelete := false
 	manifest, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -79,8 +79,9 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 	name := podManifest.Name
 	err = clientset.CoreV1().Pods(namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
-		checkForPodDelete = false
 		logger.Error("Failed to delete pod", zap.Error(err))
+	} else if err == nil {
+		checkForPodDelete = true
 	}
 
 	if checkForPodDelete {
