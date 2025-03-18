@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/VedRatan/remediation-server/k8s"
 	"github.com/VedRatan/remediation-server/k8scontroller"
@@ -62,6 +64,9 @@ func main() {
 		fmt.Println("Error: The --k8s-agent-url flag is required")
 		flag.Usage()
 		os.Exit(1) // Exit with a non-zero status code
+	} else if err := checkConnection(); err != nil {
+		fmt.Println("error: ", err)
+		os.Exit(1)
 	}
 	if types.AiAgentKey == "" {
 		apiKey := os.Getenv("GEMINI_API_KEY")
@@ -98,7 +103,7 @@ func main() {
 		if !cache.WaitForCacheSync(ctx.Done(), c.Informer.HasSynced) {
 			cancel()
 			fmt.Println("failed to wait for cache sync:", "core.k8sgpt.ai/v1alpha1/results")
-			return
+			os.Exit(1)
 		}
 
 		// Start the controller
@@ -110,4 +115,17 @@ func main() {
 			return
 		}
 	}
+}
+
+func checkConnection() error {
+	timeout := 5 * time.Second
+	conn, err := net.DialTimeout("tcp", types.K8sAgentServiceURL, timeout)
+	if err != nil {
+		fmt.Println("Failed to connect to k8s-agent service", types.K8sAgentServiceURL)
+		return err
+	}
+	defer conn.Close()
+
+	fmt.Println("Successfully connected to k8s-agent service", types.K8sAgentServiceURL)
+	return nil
 }
