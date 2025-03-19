@@ -18,7 +18,24 @@ concurrency:
 
 
 jobs:
+  files-changed:
+    name: Detect what files changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      golang: ${{ steps.filter.outputs.golang}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: |
+            golang:
+              - 'k8s-agent/**'
+
   required:
+    needs: files-changed
+    if: ${{ needs.files-changed.outputs.golang == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
