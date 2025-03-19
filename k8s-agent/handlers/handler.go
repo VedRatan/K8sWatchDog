@@ -205,5 +205,10 @@ func PodStatusHandler(w http.ResponseWriter, r *http.Request) {
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	// health checks to confirm that the server is healthy and running
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	_, err := w.Write([]byte("OK"))
+	if err != nil {
+        log.Println("failed to write response", err.Error())
+        http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
+        return
+    }
 }
