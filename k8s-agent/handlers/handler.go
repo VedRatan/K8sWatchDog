@@ -50,6 +50,7 @@ func init() { //nolint:gochecknoinits
 		log.Fatalf("Error creating clientset: %v", err)
 	}
 
+	// setup a custom logger which will be associated with the name as k8s-agent
 	logger, err = customlogger.NewLogger("k8s-agent")
 	if err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
@@ -65,6 +66,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// read the YAML payload and convert into pod manifest
 	var podManifest corev1.Pod
 	err = yaml.Unmarshal(manifest, &podManifest)
 	if err != nil {
@@ -73,11 +75,14 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// fallback to default namespace if the namespace is not provided
 	namespace := podManifest.Namespace
 	if namespace == "" {
 		namespace = "default" // if namespace field is empty, default namespace should be used
 	}
 	name := podManifest.Name
+
+	// delete the existing faulty pod in the cluster
 	err = clientset.CoreV1().Pods(namespace).Delete(context.TODO(), name, v1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		logger.Error("Failed to delete pod", zap.Error(err))
@@ -85,6 +90,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 		checkForPodDelete = true
 	}
 
+	// wait for the faulty pod to get deleted
 	if checkForPodDelete {
 		watcher, err := clientset.CoreV1().Pods(namespace).Watch(context.TODO(), v1.ListOptions{
 			FieldSelector: fmt.Sprintf("metadata.name=%s", name),
@@ -100,7 +106,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 			case watch.Deleted:
 				logger.Info("pod has been deleted", zap.String("name", name))
 				watcher.Stop() // graceful shutdown
-				break Loop
+				break Loop     // break the loop
 			case watch.Error:
 				logger.Error("error watching pod", zap.String("name", name))
 				http.Error(w, fmt.Sprintf("error watching pod: %v", event.Object), http.StatusInternalServerError)
@@ -109,6 +115,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// apply the manifest received from the payload, assuming that it is a remediated manifest
 	_, err = clientset.CoreV1().Pods(namespace).Create(context.Background(), &podManifest, v1.CreateOptions{})
 	if err != nil {
 		logger.Error("failed to apply manifest", zap.Error(err))
@@ -130,7 +137,7 @@ func ApplyHandler(w http.ResponseWriter, r *http.Request) {
 func ListPodsHandler(w http.ResponseWriter, r *http.Request) {
 	namespace := r.URL.Query().Get("namespace")
 	if namespace == "" {
-		namespace = "default"
+		namespace = "default" // fallback to the default namespace
 	}
 
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), v1.ListOptions{})
@@ -162,7 +169,7 @@ func StreamLogsHandler(w http.ResponseWriter, r *http.Request) {
 	defer logs.Close()
 
 	w.Header().Set("Content-Type", "text/plain")
-	_, err = io.Copy(w, logs)
+	_, err = io.Copy(w, logs) // stream logs
 	if err != nil {
 		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
@@ -193,4 +200,10 @@ func PodStatusHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// health checks to confirm that the server is healthy and running
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

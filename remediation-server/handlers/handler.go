@@ -29,6 +29,7 @@ func ForwardRemediation(remediationYAML string) error {
 	return nil
 }
 
+// To make remediation server work as a server as well, we added this function. TODO: Utilize this function if k8sagent supports connecting to third party services in near future.
 func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

@@ -15,10 +15,12 @@ func extractYAMLFromResponse(response string) string {
 	}
 	startIndex += len(startMarker)
 
+	// Finding the end index making startIndex as the starting point for search (which will be effective 0th index for search)
 	endIndex := strings.Index(response[startIndex:], endMarker)
 	if endIndex == -1 {
 		return ""
 	}
+	// adding startIndex to endIndex to make endIndex reference according to original start position of the response
 	endIndex += startIndex
 
 	// Extract the YAML content
