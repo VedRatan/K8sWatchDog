@@ -11,11 +11,8 @@ rules:
   resources:
   - results
   verbs:
-  - create
-  - delete
   - get
   - list
-  - watch
 - apiGroups:
   - ""
   resources:

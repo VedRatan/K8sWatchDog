@@ -8,6 +8,7 @@ import (
 	"github.com/VedRatan/remediation-server/types"
 )
 
+// AIClient interface allows to have multiple ai clients, if we plan in near future
 type AIClient interface {
 	GenerateContent(ctx context.Context, prompt string) (string, error)
 }

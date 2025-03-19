@@ -37,5 +37,6 @@ func main() {
 	r.HandleFunc("/pods", handlers.ListPodsHandler).Methods("GET")
 	r.HandleFunc("/pods/{namespace}/{podName}/logs", handlers.StreamLogsHandler).Methods("GET")
 	r.HandleFunc("/pods/{namespace}/{podName}/status", handlers.PodStatusHandler).Methods("GET")
+	r.HandleFunc("/healthz", handlers.HealthCheckHandler).Methods("GET")
 	startServer(r)
 }

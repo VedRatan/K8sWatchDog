@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 )
 
+// function to  extract pod name and namespace from the provided remediationYAML
 func extractPodDetails(remediationYAML string) (string, string, error) {
 	obj := &unstructured.Unstructured{}
 	decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
@@ -33,6 +34,7 @@ func extractPodDetails(remediationYAML string) (string, string, error) {
 
 func applyRemediation(remediationYAML string) error {
 	var url string
+	// conditional url building based on the type of connection between remediation-server and k8s-agent
 	if types.Insecure {
 		url = fmt.Sprintf("http://%s/apply", types.K8sAgentServiceURL)
 	} else {
@@ -65,7 +67,7 @@ func applyRemediation(remediationYAML string) error {
 func verifyPodStatus(namespace, podName string) error {
 	statusURL := fmt.Sprintf("http://%s/pods/%s/%s/status", types.K8sAgentServiceURL, namespace, podName)
 
-	for i := 0; i < 5; i++ { // Retry 10 times with a delay
+	for i := 0; i < 5; i++ { // Retry 5 times with a delay
 		time.Sleep(10 * time.Second) // Wait for 10 seconds before checking the status
 
 		req, err := http.NewRequestWithContext(context.Background(), "GET", statusURL, nil)
@@ -97,7 +99,7 @@ func verifyPodStatus(namespace, podName string) error {
 }
 
 func isPodReady(status map[string]interface{}) bool {
-	if phase, ok := status["phase"].(string); !ok || (phase != "Running" && phase != "Succeeded") {
+	if phase, ok := status["phase"].(string); !ok || (phase != "Running" && phase != "Succeeded") { // In case the pod is part of a job
 		return false
 	}
 

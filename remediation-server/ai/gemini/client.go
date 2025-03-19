@@ -53,6 +53,7 @@ func (g *GeminiClient) GenerateContent(ctx context.Context, prompt string) (stri
 		return "", fmt.Errorf("Gemini API returned non-200 status code: %d, body: %s", resp.StatusCode, string(body))
 	}
 
+	// defining the struct to hold the response body
 	var geminiResponse struct {
 		Candidates []struct {
 			Content struct {
