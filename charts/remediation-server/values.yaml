@@ -23,10 +23,10 @@ config:
   # the ai backend to provide remediation ex: gemini, openai, cohere etc. Currently supported - gemini (optional)
   aiBackend:
   # the apiKey for the ai backend (required) (by default you need to provide the gemini api key if aiBackend field is left empty or set to gemini.)
-  aiApiKey: AIzaSyA98MRZffd3eEFbKy5F_o8-CexnC-Cy7yU
+  aiApiKey:
   # the url of the k8sAgent service to apply the remediated YAML in k8s-cluster. (required)
   # ex: <ip>:<port> (omit the port field if k8s-agent service is listening on port 80)
-  k8sAgentUrl: 10.96.105.207:80
+  k8sAgentUrl:
   # configure the remediation-service to use https (insecure: false) or http (insecure: true) to communicate to k8s-agent-service (optional)
   insecure:
 
