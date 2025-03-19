@@ -20,7 +20,6 @@ jobs:
   required:
     needs: files-changed
     if: ${{ needs.files-changed.outputs.charts == 'true' }}
-    name: helm-lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
