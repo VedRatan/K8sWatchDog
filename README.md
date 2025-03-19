@@ -13,14 +13,14 @@ K8sWatchdog is a Kubernetes monitoring tool designed to help administrators and 
 - Install the k8s-agent component of k8swatchdog
   - Supported configurations via values.yaml file are listed [here](./charts/k8s-agent/README.md)  according to your needs.
   ```console
-  helm install k8swatchdog/k8s-agent -n k8s-agent --create-namespace
+  helm install k8s-agent k8swatchdog/k8s-agent -n k8s-agent --create-namespace
   ```
 - Install the remediation-server component of k8swatchdog
   - Supported configurations via values.yaml file are listed [here](./charts/remediation-server/README.md)  according to your needs.
   - Copy the ip and port of the k8s-agent service and set it as `config.k8sAgentUrl` value in values.yaml file.
   - Place the api key for gemini ai at `config.aiApiKey` value in values.yaml file.
   ```console
-  helm install k8swatchdog/remediation-server -n remediation-server --create-namespace
+  helm install remediation-server k8swatchdog/remediation-server -n remediation-server --create-namespace
   ```
 
 Tutorial
