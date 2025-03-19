@@ -207,8 +207,8 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("OK"))
 	if err != nil {
-        log.Println("failed to write response", err.Error())
-        http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
-        return
-    }
+		log.Println("failed to write response", err.Error())
+		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
+		return
+	}
 }
