@@ -1,0 +1,18 @@
+apiVersion: core.k8sgpt.ai/v1alpha1
+kind: Result
+metadata:
+  name: faulty-pod
+  namespace: default
+  labels:
+      k8sgpts.k8sgpt.ai/backend: "openai"
+      k8sgpts.k8sgpt.ai/name: "k8sgpt-sample"
+      k8sgpts.k8sgpt.ai/namespace: "k8sgpt-operator-system"
+spec:
+  autoRemediationStatus: {false}
+  backend: "gemini"
+  details: "Pod is in a faulty state"
+  error:
+    - text: "Pod is crash looping"
+  kind: "Pod"
+  name: "default/faulty-pod"
+  parentObject: "default/faulty-pod-deployment"
