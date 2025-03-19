@@ -20,7 +20,7 @@ K8sWatchdog is a Kubernetes monitoring tool designed to help administrators and 
   - Copy the ip and port of the k8s-agent service and set it as `config.k8sAgentUrl` value in values.yaml file.
   - Place the api key for gemini ai at `config.aiApiKey` value in values.yaml file.
   ```console
-  helm install remediation-server k8swatchdog/remediation-server -n remediation-server --create-namespace
+   helm install remediation-server k8swatchdog/remediation-server -n remediation-server --create-namespace --set config.k8sAgentUrl=<K8S-AGENT-SERVICE-IP>:<K8S-AGENT-SERVICE-PORT> --set config.aiApiKey=<AI-API-KEY (DEFAULT -> GEMINI-API-KEY)>
   ```
 
 Tutorial
