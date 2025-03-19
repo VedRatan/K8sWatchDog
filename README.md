@@ -6,7 +6,7 @@ K8sWatchdog is a Kubernetes monitoring tool designed to help administrators and 
 
 - Add the helm repository
   ```console
-  helm repo add k8swatchdog https://vedratan.github.io/k8swatchdog/
+  helm repo add k8swatchdog https://vedratan.github.io/K8sWatchdog/
   helm repo update k8swatchdog
   ```
 
