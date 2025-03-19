@@ -156,11 +156,19 @@ func (c *controller) reconcile(ctx context.Context, item any) error {
 	key, err := cache.MetaNamespaceKeyFunc(item)
 	if err != nil {
 		c.logger.Error("error getting key from cache", zap.Error(err))
+		return nil
 	}
 
 	ns, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
-		return err
+		c.logger.Error("error getting name and namespace of result obj", zap.Error(err))
+		return nil
+	}
+
+	_, err = c.resLister.ByNamespace(ns).Get(name)
+	if err != nil {
+		c.logger.Error("error getting result obj", zap.Error(err), zap.String("name", name), zap.String("namespace", ns))
+		return nil
 	}
 
 	err = c.createRemediationRequest(ns, name)
@@ -202,7 +210,7 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 
 	var pod corev1.Pod
 	if err := c.clientset.Get(ctx, apitypes.NamespacedName{Namespace: podNs, Name: podName}, &pod); err != nil {
-		c.logger.Error("failed to get pod", zap.Error(err))
+		c.logger.Error("failed to get pod", zap.Error(err), zap.String("name", podName), zap.String("namespace", podNs))
 		return err
 	}
 
