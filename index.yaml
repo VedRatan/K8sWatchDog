@@ -11,7 +11,7 @@ entries:
     name: k8s-agent
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.4/k8s-agent-0.1.4.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/k8s-agent-0.1.4/k8s-agent-0.1.4.tgz
     version: 0.1.4
   - apiVersion: v2
     created: "2025-03-20T05:56:01.593611802Z"
@@ -23,7 +23,7 @@ entries:
     name: k8s-agent
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.3/k8s-agent-0.1.3.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/k8s-agent-0.1.3/k8s-agent-0.1.3.tgz
     version: 0.1.3
   - apiVersion: v2
     created: "2025-03-19T12:23:32.253660069Z"
@@ -72,7 +72,7 @@ entries:
     name: remediation-server
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.3/remediation-server-0.1.3.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/remediation-server-0.1.3/remediation-server-0.1.3.tgz
     version: 0.1.3
   - apiVersion: v2
     created: "2025-03-20T05:56:01.722866406Z"
@@ -84,7 +84,7 @@ entries:
     name: remediation-server
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.2/remediation-server-0.1.2.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/remediation-server-0.1.2/remediation-server-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
     created: "2025-03-19T12:23:32.357071963Z"
