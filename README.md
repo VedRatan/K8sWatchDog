@@ -3,9 +3,9 @@
 <a>![logo](image/k8swatchdog.png)</a>
 
 
-K8sWatchDog is a Kubernetes monitoring tool designed to help administrators and developers to remediate faulty pods inside their cluster. It provides real-time fault remediations.
+K8sWatchDog is a Kubernetes monitoring tool designed to help administrators and developers to remediate faulty resources inside their cluster. It provides real-time fault remediations.
 
-- K8sWatchdog internally uses k8sgpt to know about the faulty pods, so please make sure you have k8sgpt installed in your cluster. Install it from [here](https://github.com/k8sgpt-ai/k8sgpt-operator).
+- K8sWatchdog internally uses k8sgpt to know about the faulty resources, so please make sure you have k8sgpt installed in your cluster. Install it from [here](https://github.com/k8sgpt-ai/k8sgpt-operator).
 
 - Add the helm repository
   ```console
@@ -25,6 +25,9 @@ K8sWatchDog is a Kubernetes monitoring tool designed to help administrators and 
   ```console
    helm install remediation-server k8swatchdog/remediation-server -n remediation-server --create-namespace --set config.k8sAgentUrl=<K8S-AGENT-SERVICE-IP>:<K8S-AGENT-SERVICE-PORT> --set config.aiApiKey=<AI-API-KEY (DEFAULT -> GEMINI-API-KEY)>
   ```
+  
+
+  **_NOTE:_** Currently, K8sWatchDog supports only pod remediation, support for multiple resources will be added soon.
 
 Tutorial
 
