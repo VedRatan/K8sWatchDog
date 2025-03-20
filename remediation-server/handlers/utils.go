@@ -15,7 +15,7 @@ import (
 )
 
 // function to  extract pod name and namespace from the provided remediationYAML
-func extractPodDetails(remediationYAML string) (string, string, error) {
+func ExtractPodDetails(remediationYAML string) (string, string, error) {
 	obj := &unstructured.Unstructured{}
 	decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	_, _, err := decoder.Decode([]byte(remediationYAML), nil, obj)
@@ -32,7 +32,7 @@ func extractPodDetails(remediationYAML string) (string, string, error) {
 	return podName, namespace, nil
 }
 
-func applyRemediation(remediationYAML string) error {
+func ApplyRemediation(remediationYAML string) error {
 	var url string
 	// conditional url building based on the type of connection between remediation-server and k8s-agent
 	if types.Insecure {
@@ -64,38 +64,54 @@ func applyRemediation(remediationYAML string) error {
 	return nil
 }
 
-func verifyPodStatus(namespace, podName string) error {
+func VerifyPodStatus(namespace, podName string, isRemediated bool) error {
 	statusURL := fmt.Sprintf("http://%s/pods/%s/%s/status", types.K8sAgentServiceURL, namespace, podName)
-
-	for i := 0; i < 5; i++ { // Retry 5 times with a delay
-		time.Sleep(10 * time.Second) // Wait for 10 seconds before checking the status
-
-		req, err := http.NewRequestWithContext(context.Background(), "GET", statusURL, nil)
+	// If the pod is remediated, it will take some time to comeup in a ready state
+	if isRemediated {
+		for i := 0; i < 5; i++ { // Retry 5 times with a delay
+			time.Sleep(10 * time.Second) // Wait for 10 seconds before checking the status
+			status, err := getPodStatus(statusURL)
+			if err != nil {
+				return err
+			}
+			// Check if the pod is in the Ready state
+			if isPodReady(status) {
+				return nil
+			}
+		}
+	} else {
+		status, err := getPodStatus(statusURL)
 		if err != nil {
-			return fmt.Errorf("Error creating GET request: %v", err)
+			return err
 		}
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return fmt.Errorf("failed to check pod status: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("k8s-agent returned non-OK status: %s", resp.Status)
-		}
-
-		var status map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
-			return fmt.Errorf("failed to decode pod status: %v", err)
-		}
-
-		// Check if the pod is in the Ready state
 		if isPodReady(status) {
 			return nil
 		}
 	}
 
 	return fmt.Errorf("pod %s/%s did not reach Ready state within the timeout period", namespace, podName)
+}
+
+func getPodStatus(statusURL string) (map[string]interface{}, error) {
+	req, err := http.NewRequestWithContext(context.Background(), "GET", statusURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating GET request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check pod status: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("k8s-agent returned non-OK status: %s", resp.Status)
+	}
+
+	var status map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
+		return nil, fmt.Errorf("failed to decode pod status: %v", err)
+	}
+	return status, nil
 }
 
 func isPodReady(status map[string]interface{}) bool {

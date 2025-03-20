@@ -11,21 +11,20 @@ import (
 
 // Function to send the remediated YAML to k8s-agent service
 func ForwardRemediation(remediationYAML string) error {
-	podName, namespace, err := extractPodDetails(remediationYAML)
+	podName, namespace, err := ExtractPodDetails(remediationYAML)
 	if err != nil {
 		return fmt.Errorf("failed to extract pod details: %v", err)
 	}
 
 	// Apply the remediation YAML via k8s-agent service
-	if err := applyRemediation(remediationYAML); err != nil {
+	if err := ApplyRemediation(remediationYAML); err != nil {
 		return fmt.Errorf("failed to apply remediation: %v", err)
 	}
 
 	// Verify the pod status
-	if err := verifyPodStatus(namespace, podName); err != nil {
+	if err := VerifyPodStatus(namespace, podName, true); err != nil {
 		return fmt.Errorf("failed to verify pod status: %v", err)
 	}
-
 	return nil
 }
 
