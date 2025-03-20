@@ -39,4 +39,4 @@ jobs:
 
       - name: Verify helm docs
         run: |
-          make verfiy-helm
+          make verify-helm
