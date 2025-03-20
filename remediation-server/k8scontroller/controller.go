@@ -208,6 +208,11 @@ func (c *controller) createRemediationRequest(ns string, name string) error {
 		return err
 	}
 
+	if err := handlers.VerifyPodStatus(podNs, podName, false); err == nil {
+		c.logger.Info("pod is already in running state, no need to remediate", zap.String("name", podName), zap.String("namespace", podNs))
+		return nil
+	}
+
 	var pod corev1.Pod
 	if err := c.clientset.Get(ctx, apitypes.NamespacedName{Namespace: podNs, Name: podName}, &pod); err != nil {
 		c.logger.Error("failed to get pod", zap.Error(err), zap.String("name", podName), zap.String("namespace", podNs))

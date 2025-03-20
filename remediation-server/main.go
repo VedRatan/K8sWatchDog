@@ -119,6 +119,10 @@ func main() {
 
 func checkConnection() error {
 	timeout := 5 * time.Second
+	// Check if the URL contains a port
+	if !strings.Contains(types.K8sAgentServiceURL, ":") {
+		types.K8sAgentServiceURL = fmt.Sprintf("%s:%d", types.K8sAgentServiceURL, 80)
+	}
 	conn, err := net.DialTimeout("tcp", types.K8sAgentServiceURL, timeout)
 	if err != nil {
 		fmt.Println("Failed to connect to k8s-agent service", types.K8sAgentServiceURL)
