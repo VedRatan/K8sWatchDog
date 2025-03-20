@@ -2,6 +2,18 @@ apiVersion: v1
 entries:
   k8s-agent:
   - apiVersion: v2
+    created: "2025-03-20T06:11:28.700436299Z"
+    description: A Helm chart for Kubernetes
+    digest: 146f0033942cdb7b906422dad4026dfc19ed6046326e77a6593d99e4c538f884
+    maintainers:
+    - name: VedRatan
+      url: https://github.com/VedRatan
+    name: k8s-agent
+    type: application
+    urls:
+    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.4/k8s-agent-0.1.4.tgz
+    version: 0.1.4
+  - apiVersion: v2
     created: "2025-03-20T05:56:01.593611802Z"
     description: A Helm chart for Kubernetes
     digest: 1b8e6e9dbf5c9283fdf80977e05bb1069aec4f2489f71906b23079cbf5ce296a
@@ -51,6 +63,18 @@ entries:
     version: 0.1.2-rc6
   remediation-server:
   - apiVersion: v2
+    created: "2025-03-20T06:11:28.804977016Z"
+    description: A Helm chart for Kubernetes
+    digest: 27c16a729a4f826360ac8ab37e34f595861432f542ce378c0183f0476fb84e34
+    maintainers:
+    - name: VedRatan
+      url: https://github.com/VedRatan
+    name: remediation-server
+    type: application
+    urls:
+    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.3/remediation-server-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
     created: "2025-03-20T05:56:01.722866406Z"
     description: A Helm chart for Kubernetes
     digest: c9627dbac4ab4df557862b7f86760f7103b50052f423c0226a2daba806dcdc79
@@ -98,4 +122,4 @@ entries:
     urls:
     - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.0-rc5/remediation-server-0.1.0-rc5.tgz
     version: 0.1.0-rc5
-generated: "2025-03-20T05:56:01.722903014Z"
+generated: "2025-03-20T06:11:28.805021759Z"
