@@ -2,16 +2,15 @@
 
 - Step 1: Install the results crd of k8sgpt operator.
     ```console
-    kubectl apply -f https://raw.githubusercontent.com/k8sgpt-ai/k8sgpt-operator/refs/heads/main/config/crd/bases/core.k8sgpt.ai_resu
-    lts.yaml
+    kubectl apply -f https://raw.githubusercontent.com/k8sgpt-ai/k8sgpt-operator/refs/heads/main/config/crd/bases/core.k8sgpt.ai_results.yaml
     ```
 - Step 2: Apply sample faulty pod
     ```console
-    kubectl apply -f https://raw.githubusercontent.com/VedRatan/K8sWatchdog/refs/heads/main/manifests/faulty-pod.yaml
+    kubectl apply -f https://raw.githubusercontent.com/VedRatan/K8sWatchDog/refs/heads/main/manifests/faulty-pod.yaml
     ```
 - Step 3: Apply the sample result CR in your local cluster
     ```console
-    kubectl apply -f https://raw.githubusercontent.com/VedRatan/K8sWatchdog/refs/heads/main/manifests/result.yaml
+    kubectl apply -f https://raw.githubusercontent.com/VedRatan/K8sWatchDog/refs/heads/main/manifests/result.yaml
     ```
 - Step 4: Verify the status of the `faulty-pod` in the cluster, it should be in running state
 
