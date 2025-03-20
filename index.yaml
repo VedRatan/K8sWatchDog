@@ -35,7 +35,7 @@ entries:
     name: k8s-agent
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.2/k8s-agent-0.1.2.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/k8s-agent-0.1.2/k8s-agent-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
     created: "2025-03-19T12:14:33.148303125Z"
@@ -47,7 +47,7 @@ entries:
     name: k8s-agent
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.2-rc7/k8s-agent-0.1.2-rc7.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/k8s-agent-0.1.2-rc7/k8s-agent-0.1.2-rc7.tgz
     version: 0.1.2-rc7
   - apiVersion: v2
     created: "2025-03-19T11:39:39.087403755Z"
@@ -59,7 +59,7 @@ entries:
     name: k8s-agent
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/k8s-agent-0.1.2-rc6/k8s-agent-0.1.2-rc6.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/k8s-agent-0.1.2-rc6/k8s-agent-0.1.2-rc6.tgz
     version: 0.1.2-rc6
   remediation-server:
   - apiVersion: v2
@@ -96,7 +96,7 @@ entries:
     name: remediation-server
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.1/remediation-server-0.1.1.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/remediation-server-0.1.1/remediation-server-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v2
     created: "2025-03-19T12:14:33.264700497Z"
@@ -108,7 +108,7 @@ entries:
     name: remediation-server
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.0-rc7/remediation-server-0.1.0-rc7.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/remediation-server-0.1.0-rc7/remediation-server-0.1.0-rc7.tgz
     version: 0.1.0-rc7
   - apiVersion: v2
     created: "2025-03-19T11:39:39.219861296Z"
@@ -120,6 +120,6 @@ entries:
     name: remediation-server
     type: application
     urls:
-    - https://github.com/VedRatan/K8sWatchdog/releases/download/remediation-server-0.1.0-rc5/remediation-server-0.1.0-rc5.tgz
+    - https://github.com/VedRatan/K8sWatchDog/releases/download/remediation-server-0.1.0-rc5/remediation-server-0.1.0-rc5.tgz
     version: 0.1.0-rc5
 generated: "2025-03-20T06:11:28.805021759Z"
