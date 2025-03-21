@@ -184,7 +184,7 @@ func PodStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	pod, err := clientset.CoreV1().Pods(namespace).Get(context.TODO(), podName, v1.GetOptions{})
 	if err != nil {
-		log.Println("failed to get the pod status", err.Error())
+		logger.Error("failed to get the pod status", zap.Error(err))
 		http.Error(w, fmt.Sprintf("Failed to get pod status: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -196,7 +196,7 @@ func PodStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(status)
 	if err != nil {
-		log.Println("failed to write response", err.Error())
+		logger.Error("failed to write response", zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
@@ -207,7 +207,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("OK"))
 	if err != nil {
-		log.Println("failed to write response", err.Error())
+		logger.Error("failed to write response", zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
