@@ -196,7 +196,7 @@ func PodStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(status)
 	if err != nil {
-		logger.Error("failed to write response", zap.Error(err))
+		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
@@ -207,7 +207,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("OK"))
 	if err != nil {
-		logger.Error("failed to write response", zap.Error(err))
+		logger.Error(LOG_ERROR_RESPONSE, zap.Error(err))
 		http.Error(w, fmt.Sprintf(ERROR_RESPONSE, err), http.StatusInternalServerError)
 		return
 	}
