@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -16,6 +15,7 @@ import (
 	"github.com/VedRatan/remediation-server/k8scontroller"
 	"github.com/VedRatan/remediation-server/types"
 	k8sgptv1alpha1 "github.com/k8sgpt-ai/k8sgpt-operator/api/v1alpha1"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -97,12 +97,12 @@ func main() {
 		var wg wait.Group
 
 		wg.StartWithContext(ctx, func(ctx context.Context) {
-			log.Println("informer starting... ", "core.k8sgpt.ai/v1alpha1/results")
+			c.Logger.Info("starting informer...", zap.String("gvr", "core.k8sgpt.ai/v1alpha1/results"))
 			c.Informer.Run(ctx.Done())
 		})
 		if !cache.WaitForCacheSync(ctx.Done(), c.Informer.HasSynced) {
 			cancel()
-			fmt.Println("failed to wait for cache sync:", "core.k8sgpt.ai/v1alpha1/results")
+			c.Logger.Error("failed to wait for cache sync", zap.String("gvr", "core.k8sgpt.ai/v1alpha1/results"))
 			os.Exit(1)
 		}
 
